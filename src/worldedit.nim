@@ -139,4 +139,4 @@ when isMainModule:
       writeFile(config.world, newWorld)
     elif not config.remove.isEmptyOrWhitespace:
       #TODO Find and remove from worldfile
-      installRemove(config.removeCommand, @[config.install], config.bash)
+      installRemove(config.removeCommand, @[config.remove], config.bash)
