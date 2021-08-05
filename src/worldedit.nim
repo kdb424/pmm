@@ -26,11 +26,12 @@ Options:
   --diff                       Lists the packages that are added/removed
   --install=<package>          Installs a package and appends to the worldfile
   --remove=<package>           Removes a package and deletes the entry in the worldfile [WIP]
+  --bash                       Outputs commands that can be piped into bash
 """
 type
   Worldedit = object
     install, installCommand, listCommand, remove, removeCommand, world: string
-    diff, init, sync: bool
+    bash, diff, init, sync: bool
 
 proc clean(input: seq[string]): seq[string] =
   return filter(input, proc(x: string): bool = not x.isEmptyOrWhitespace).deduplicate
@@ -74,12 +75,12 @@ proc generate_package_list(listCommand: string): seq[string] =
 
   return packageList.sorted
 
-proc installRemove(command: string, packages: seq[string]) =
+proc installRemove(command: string, packages: seq[string], bash: bool) =
   # Installs or removes a list of packages
   if packages.clean.len >= 1:
     let fullCommand = command & " " & packages.join(sep = " ")
     fullCommand.echo
-    execProcess(fullCommand).echo
+    if not bash: execProcess(fullCommand).echo
 
 proc listDiff(added: seq[string], removed: seq[string]) =
   echo ("Added: " & added.join(sep = " "))
@@ -109,6 +110,7 @@ when isMainModule:
   if args["--init"]: config.init = parseBool($args["--init"])
   if args["--install"]: config.install = $args["--install"]
   if args["--remove"]: config.remove = $args["--remove"]
+  if args["--bash"]: config.bash = parseBool($args["--bash"])
 
   if config.world.isEmptyOrWhitespace:
     config.world = "/etc/worldedit/worldfile"
@@ -125,16 +127,16 @@ when isMainModule:
     let added = world.filterIt(it notin package_list).clean
 
     if config.sync:
-      installRemove(config.installCommand, added)
-      installRemove(config.removeCommand, removed)
+      installRemove(config.installCommand, added, config.bash)
+      installRemove(config.removeCommand, removed, config.bash)
     elif config.diff:
       listDiff(added, removed)
     elif not config.install.isEmptyOrWhitespace:
       # Installs package, and adds it to worldfile
-      installRemove(config.installCommand, @[config.install])
+      installRemove(config.installCommand, @[config.install], config.bash)
       var world = config.world.read_file.split
       let newWorld = (world & config.install.split).clean.join(sep="\n")
       writeFile(config.world, newWorld)
     elif not config.remove.isEmptyOrWhitespace:
       #TODO Find and remove from worldfile
-      installRemove(config.removeCommand, @[config.install])
+      installRemove(config.removeCommand, @[config.install], config.bash)

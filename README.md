@@ -51,6 +51,7 @@ Options:
   --diff                       Lists the packages that are added/removed
   --install=<package>          Installs a package and appends to the worldfile
   --remove=<package>           Removes a package and deletes the entry in the worldfile
+  --bash                       Outputs commands that can be piped into bash
 ```
 
 ## Configuration
