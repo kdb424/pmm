@@ -38,7 +38,7 @@ proc clean(input: seq[string]): seq[string] =
 proc readWorldFile(input: string): seq[string] =
   # Recursively reads in worldfiles, and sets
   let packageFile = read_file(input).split
-  var packageList = @[""]
+  var packageList: seq[string]
 
   for i in packageFile:
     if i.startsWith("@"): # is a set name
@@ -59,25 +59,27 @@ proc readWorldFile(input: string): seq[string] =
 proc generate_package_list(listCommand: string): seq[string] =
   # Generates a newline seperated list of packages, and returns it
   # as a sorted seq[string]
-  var package_list = @[""]
+  var packageList: seq[string]
 
   if listCommand.isEmptyOrWhitespace:
-    package_list = split(execProcess(listCommand))
+    packageList = split(execProcess(listCommand))
   else:
     if detectOS(ArchLinux) or detectOS(Archbang) or detectOS(BlackArch):
-      package_list = split(execProcess("pacman -Qqe"))
+      packageList = split(execProcess("pacman -Qqe"))
     elif detectOS(Debian) or detectOS(Ubuntu):
-      package_list = split(execProcess("apt-mark showmanual | sort -u"))
+      packageList = split(execProcess("apt-mark showmanual | sort -u"))
     else: # Artix is missing currently. https://github.com/nim-lang/Nim/pull/18629
-      package_list = split(execProcess("pacman -Qqe"))
+      packageList = split(execProcess("pacman -Qqe"))
 
 
-  return package_list.sorted
+  return packageList.sorted
 
 proc installRemove(command: string, packages: seq[string]) =
   # Installs or removes a list of packages
-  let fullCommand = command & " " & packages.join(sep = " ")
-  discard execProcess(fullCommand)
+  if packages.clean.len >= 1:
+    let fullCommand = command & " " & packages.join(sep = " ")
+    fullCommand.echo
+    execProcess(fullCommand).echo
 
 proc listDiff(added: seq[string], removed: seq[string]) =
   echo ("Added: " & added.join(sep = " "))
@@ -119,8 +121,8 @@ when isMainModule:
     let world = readWorldFile(config.world)
 
     let package_list = generate_package_list(config.installCommand)
-    let removed = package_list.filterIt(it notin world)
-    let added = world.filterIt(it notin package_list)
+    let removed = package_list.filterIt(it notin world).clean
+    let added = world.filterIt(it notin package_list).clean
 
     if config.sync:
       installRemove(config.installCommand, added)
