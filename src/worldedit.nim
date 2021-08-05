@@ -1,3 +1,4 @@
+import algorithm
 import docopt
 import distros
 import envconfig
@@ -23,13 +24,19 @@ Options:
   --remove-command=<command>   Package remove command
   --sync                       Add/remove packages to match the worldfile
   --diff                       Lists the packages that are added/removed
+  --install=<package>          Installs a package and appends to the worldfile
+  --remove=<package>           Removes a package and deletes the entry in the worldfile [WIP]
 """
 type
   Worldedit = object
-    installCommand, listCommand, removeCommand, world: string
+    install, installCommand, listCommand, remove, removeCommand, world: string
     diff, init, sync: bool
 
+proc clean(input: seq[string]): seq[string] =
+  return filter(input, proc(x: string): bool = not x.isEmptyOrWhitespace).deduplicate
+
 proc readWorldFile(input: string): seq[string] =
+  # Recursively reads in worldfiles, and sets
   let packageFile = read_file(input).split
   var packageList = @[""]
 
@@ -46,11 +53,12 @@ proc readWorldFile(input: string): seq[string] =
       packageList.insert(i)
 
   # filter out empty/whitespace, then dedupe on return
-  packageList = filter(packageList, proc(
-      x: string): bool = not x.isEmptyOrWhitespace)
-  return deduplicate(packageList)
+  packageList = packageList.clean
+  return packageList.sorted
 
 proc generate_package_list(listCommand: string): seq[string] =
+  # Generates a newline seperated list of packages, and returns it
+  # as a sorted seq[string]
   var package_list = @[""]
 
   if listCommand.isEmptyOrWhitespace:
@@ -64,9 +72,10 @@ proc generate_package_list(listCommand: string): seq[string] =
       package_list = split(execProcess("pacman -Qqe"))
 
 
-  return package_list
+  return package_list.sorted
 
 proc installRemove(command: string, packages: seq[string]) =
+  # Installs or removes a list of packages
   let fullCommand = command & " " & packages.join(sep = " ")
   discard execProcess(fullCommand)
 
@@ -96,6 +105,8 @@ when isMainModule:
   if args["--sync"]: config.sync = parseBool($args["--sync"])
   if args["--diff"]: config.diff = parseBool($args["--diff"])
   if args["--init"]: config.init = parseBool($args["--init"])
+  if args["--install"]: config.install = $args["--install"]
+  if args["--remove"]: config.remove = $args["--remove"]
 
   if config.world.isEmptyOrWhitespace:
     config.world = "/etc/worldedit/worldfile"
@@ -116,3 +127,12 @@ when isMainModule:
       installRemove(config.removeCommand, removed)
     elif config.diff:
       listDiff(added, removed)
+    elif not config.install.isEmptyOrWhitespace:
+      # Installs package, and adds it to worldfile
+      installRemove(config.installCommand, @[config.install])
+      var world = config.world.read_file.split
+      let newWorld = (world & config.install.split).clean.join(sep="\n")
+      writeFile(config.world, newWorld)
+    elif not config.remove.isEmptyOrWhitespace:
+      #TODO Find and remove from worldfile
+      installRemove(config.removeCommand, @[config.install])
