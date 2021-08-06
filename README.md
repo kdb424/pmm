@@ -65,12 +65,12 @@ export WORLDEDIT_INSTALL_COMMAND="$(which yay) -S --noconfirm --asexplicit"
 export WORLDEDIT_REMOVE_COMMAND="$(which yay) -D --asdeps"
 export WORLDEDIT_SHELL_INSTALL_COMMAND="$(which yay) -S --asexplicit"
 export WORLDEDIT_SHELL_REMOVE_COMMAND="$(which yay) -D --asdeps"
-export WORLDEDIT_LIST_COMMAND="yay -Qqe"
+export WORLDEDIT_LIST_COMMAND="$(which yay) -Qqe"
 export WORLDEDIT_WORLD="~/.config/worldedit/$(hostname)"
 ```
 
 ## Worldfile
-A worldfile is a list if installed packages, that are newline seperated.
+A worldfile is a list of installed packages, that are newline seperated.
 Lines starting with @ are used to refer to a set file. Sets can contain
 more packages, as well as other sets. Comments are allowed only at the
 beginning of the line, and are defined with # at the start of the line.
@@ -115,7 +115,12 @@ The example configuration doesn't actually remove packages, but mark them
 as orphans. An example of an alias that would clean up orphans would be
 something like this.
 ```bash
+# Arch-like distros
 alias orphans="yay -Qtdq | yay -Rns -"
+# Debian/Ubuntu/Apt
+alias orphans="apt autoremove"
+# Void
+alias orphans="xbps-remove -o"
 ```
 
 ## Troubleshooting
@@ -123,4 +128,53 @@ Sometimes there are conflicts that can't be handled automatically. You can
 get an interactive shell by using
 ```bash
 $(worldedit --bash)﻿
+```
+
+## Linux Distros
+
+### Alpine
+This is not recommended for Alpine. They have a way to manage a worldfile
+already, and this tool's functions would conflict with it.
+[Alpine world file](https://docs.alpinelinux.org/user-handbook/0.1a/Working/apk.html#_world) 
+
+### Arch (and Arch-like distros)
+Recommended commands are below. If not using the AUR, you can replace `$(which yay)` with
+`$(which sudo) pacman`, or any other command that will do the same tasks.
+```bash
+export WORLDEDIT_INSTALL_COMMAND="$(which yay) -S --noconfirm --asexplicit"
+export WORLDEDIT_REMOVE_COMMAND="$(which yay) -D --asdeps"
+export WORLDEDIT_SHELL_INSTALL_COMMAND="$(which yay) -S --asexplicit"
+export WORLDEDIT_SHELL_REMOVE_COMMAND="$(which yay) -D --asdeps"
+export WORLDEDIT_LIST_COMMAND="$(which yay) -Qqe"
+export WORLDEDIT_WORLD="~/.config/worldedit/worldfile"
+```
+
+### Debian/Ubuntu/Apt
+UNTESTED: FEEDBACK IS REQUESTED. ONLY FOR TESTING.
+This relies on apt-mark to get a list of packages, as well as marking them as
+orphans or dependencies of other programs.
+```bash
+export WORLDEDIT_INSTALL_COMMAND="$(which apt) -y install"
+export WORLDEDIT_REMOVE_COMMAND="$(which apt-mark) auto"
+export WORLDEDIT_SHELL_INSTALL_COMMAND="$(which apt) install"
+export WORLDEDIT_SHELL_REMOVE_COMMAND="$(which apt-mark) auto"
+export WORLDEDIT_LIST_COMMAND="$(which apt-mark) showmanual | sort -u"
+export WORLDEDIT_WORLD="~/.config/worldedit/worldfile"
+```
+
+### Gentoo
+This package is not needed on Gentoo. Portage provides all of these functions
+and is what inspired this project. The world file is located at 
+`/var/lib/portage/world`, and you can read about 
+[sets here](https://wiki.gentoo.org/wiki//etc/portage/sets).
+
+### Void
+UNTESTED: FEEDBACK IS REQUESTED. ONLY FOR TESTING.
+```bash
+export WORLDEDIT_INSTALL_COMMAND="$(which xbps-install) -y"
+export WORLDEDIT_REMOVE_COMMAND="$(which xbps-pkgdb) -m auto"
+export WORLDEDIT_SHELL_INSTALL_COMMAND="$(which xbps-install)"
+export WORLDEDIT_SHELL_REMOVE_COMMAND="$(which xbps-pkgdb) -m auto"
+export WORLDEDIT_LIST_COMMAND="$(which xbps-query) -m | sed 's/-[0-9].*//g"
+export WORLDEDIT_WORLD="~/.config/worldedit/worldfile"
 ```
