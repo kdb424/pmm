@@ -55,13 +55,15 @@ Options:
 ```
 
 ## Configuration
-There are no config files. All configuration is done through environment variables, or manually by flags.
+There are no configuration files. All configuration is done through environment
+variables, or manually by flags.
 
 ```bash
-export WORLDEDIT_INSTALL_COMMAND="yay -S --noconfirm"
-export WORLDEDIT_REMOVE_COMMAND="sudo pacman -D --asdeps"
+export WORLDEDIT_INSTALL_COMMAND="$(which yay) -S --asexplicit"
+export WORLDEDIT_REMOVE_COMMAND="$(which yay) -D --asdeps"
 export WORLDEDIT_LIST_COMMAND="yay -Qqe"
 export WORLDEDIT_WORLD="~/.config/worldedit/$(hostname)"
+
 ```
 
 ## Worldfile
@@ -103,4 +105,12 @@ refind
 pulseaudio
 pulseaudio-alsa
 pulseeffects-legacy
+```
+
+## Suggestion
+The example configuration doesn't actually remove packages, but mark them
+as orphans. An example of an alias that would clean up orphans would be
+something like this.
+```bash
+alias aorphans="yay -Qtdq | yay -Rns -"
 ```

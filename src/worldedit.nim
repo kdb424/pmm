@@ -80,7 +80,11 @@ proc installRemove(command: string, packages: seq[string], bash: bool) =
   if packages.clean.len >= 1:
     let fullCommand = command & " " & packages.join(sep = " ")
     fullCommand.echo
-    if not bash: execProcess(fullCommand).echo
+    if not bash:
+      let pid = startProcess(fullCommand, options = {poParentStreams, poUsePath, poEvalCommand})
+      discard pid.waitForExit
+      pid.close
+
 
 proc listDiff(added: seq[string], removed: seq[string]) =
   echo ("Added: " & added.join(sep = " "))
