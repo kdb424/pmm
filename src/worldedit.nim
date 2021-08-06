@@ -5,6 +5,7 @@ import envconfig
 import os
 import osproc
 import sequtils
+import strformat
 import strutils
 import typetraits
 
@@ -126,6 +127,7 @@ when isMainModule:
     config.world = config.world.expandTilde
 
   if config.init:
+    fmt"Creating world file {config.world}".echo
     createWorldFile(config.world, config.listCommand)
   else:
     let world = readWorldFile(config.world)
