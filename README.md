@@ -47,24 +47,23 @@ Options:
   --list-command=<command>           List all packages command
   --install-command=<command>        Package install command
   --remove-command=<command>         Package remove command
-  --shell-install-command=<command>  Package install command (interactive)
-  --shell-remove-command=<command>   Package remove command (interactive)
+  --orphans-command=<command>        Orphans remove command
   --sync                             Add/remove packages to match the worldfile
   --diff                             Lists the packages that are added/removed
   --install=<package>                Installs a package and appends to the worldfile
   --remove=<package>                 Removes a package and deletes the entry in the worldfile [WIP]
   --bash                             Outputs commands that can be piped into bash
+  --orphans                          Removes things marked as orphans from your system
 ```
 
 ## Configuration
 There are no configuration files. All configuration is done through environment
-variables, or manually by flags.
+variables, or manually by flags. All required commands will be auto detected if
+environment variables aren't set.
 
 ```bash
-export WORLDEDIT_INSTALL_COMMAND="$(which yay) -S --noconfirm --asexplicit"
+export WORLDEDIT_INSTALL_COMMAND="$(which yay) -S --asexplicit"
 export WORLDEDIT_REMOVE_COMMAND="$(which yay) -D --asdeps"
-export WORLDEDIT_SHELL_INSTALL_COMMAND="$(which yay) -S --asexplicit"
-export WORLDEDIT_SHELL_REMOVE_COMMAND="$(which yay) -D --asdeps"
 export WORLDEDIT_LIST_COMMAND="$(which yay) -Qqe"
 export WORLDEDIT_WORLD="~/.config/worldedit/$(hostname)"
 ```
@@ -125,7 +124,8 @@ alias orphans="xbps-remove -o"
 
 ## Troubleshooting
 Sometimes there are conflicts that can't be handled automatically. You can
-get an interactive shell by using
+get an interactive shell by removing the `--noconfirm` or `-y` to ensure you can
+install things interactively.
 ```bash
 $(worldedit --bash)﻿
 ```
@@ -138,26 +138,23 @@ already, and this tool's functions would conflict with it.
 [Alpine world file](https://docs.alpinelinux.org/user-handbook/0.1a/Working/apk.html#_world) 
 
 ### Arch (and Arch-like distros)
-Recommended commands are below. If not using the AUR, you can replace `$(which yay)` with
-`$(which sudo) pacman`, or any other command that will do the same tasks.
+Default commands are below. If not using the AUR, you can replace `$(which yay)` with
+`$(which sudo) pacman`, or any other command that will do the same tasks. It automatically
+falls back to `sudo pacman` if `yay` is not detected
 ```bash
-export WORLDEDIT_INSTALL_COMMAND="$(which yay) -S --noconfirm --asexplicit"
+export WORLDEDIT_INSTALL_COMMAND="$(which yay) -S --asexplicit"
 export WORLDEDIT_REMOVE_COMMAND="$(which yay) -D --asdeps"
-export WORLDEDIT_SHELL_INSTALL_COMMAND="$(which yay) -S --asexplicit"
-export WORLDEDIT_SHELL_REMOVE_COMMAND="$(which yay) -D --asdeps"
 export WORLDEDIT_LIST_COMMAND="$(which yay) -Qqe"
 export WORLDEDIT_WORLD="~/.config/worldedit/worldfile"
 ```
 
 ### Debian/Ubuntu/Apt
 UNTESTED: FEEDBACK IS REQUESTED. ONLY FOR TESTING.
-This relies on apt-mark to get a list of packages, as well as marking them as
-orphans or dependencies of other programs.
+Default commands are below. This relies on apt-mark to get a list of packages, as well as
+marking them as orphans or dependencies of other programs.
 ```bash
-export WORLDEDIT_INSTALL_COMMAND="$(which apt) -y install"
+export WORLDEDIT_INSTALL_COMMAND="$(which apt) install"
 export WORLDEDIT_REMOVE_COMMAND="$(which apt-mark) auto"
-export WORLDEDIT_SHELL_INSTALL_COMMAND="$(which apt) install"
-export WORLDEDIT_SHELL_REMOVE_COMMAND="$(which apt-mark) auto"
 export WORLDEDIT_LIST_COMMAND="$(which apt-mark) showmanual | sort -u"
 export WORLDEDIT_WORLD="~/.config/worldedit/worldfile"
 ```
@@ -170,11 +167,10 @@ and is what inspired this project. The world file is located at
 
 ### Void
 UNTESTED: FEEDBACK IS REQUESTED. ONLY FOR TESTING.
+Default commands are below.
 ```bash
-export WORLDEDIT_INSTALL_COMMAND="$(which xbps-install) -y"
+export WORLDEDIT_INSTALL_COMMAND="$(which xbps-install)"
 export WORLDEDIT_REMOVE_COMMAND="$(which xbps-pkgdb) -m auto"
-export WORLDEDIT_SHELL_INSTALL_COMMAND="$(which xbps-install)"
-export WORLDEDIT_SHELL_REMOVE_COMMAND="$(which xbps-pkgdb) -m auto"
 export WORLDEDIT_LIST_COMMAND="$(which xbps-query) -m | sed 's/-[0-9].*//g"
 export WORLDEDIT_WORLD="~/.config/worldedit/worldfile"
 ```

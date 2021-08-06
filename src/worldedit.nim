@@ -1,6 +1,6 @@
 import algorithm
+import detect
 import docopt
-import distros
 import envconfig
 import os
 import osproc
@@ -23,19 +23,18 @@ Options:
   --list-command=<command>           List all packages command
   --install-command=<command>        Package install command
   --remove-command=<command>         Package remove command
-  --shell-install-command=<command>  Package install command (interactive)
-  --shell-remove-command=<command>   Package remove command (interactive)
+  --orphans-command=<command>        Orphans remove command
   --sync                             Add/remove packages to match the worldfile
   --diff                             Lists the packages that are added/removed
   --install=<package>                Installs a package and appends to the worldfile
   --remove=<package>                 Removes a package and deletes the entry in the worldfile [WIP]
   --bash                             Outputs commands that can be piped into bash
+  --orphans                          Removes things marked as orphans from your system
 """
 type
   Worldedit = object
-    install, installCommand, listCommand, remove, removeCommand,
-        shellInstallCommand, shellRemoveCommand, world: string
-    bash, diff, init, sync: bool
+    install, installCommand, listCommand, orphansCommand, remove, removeCommand, world: string
+    bash, diff, init, orphans, sync: bool
 
 proc clean(input: seq[string]): seq[string] =
   return filter(input, proc(x: string): bool = not x.isEmptyOrWhitespace).deduplicate
@@ -61,31 +60,24 @@ proc readWorldFile(input: string): seq[string] =
   packageList = packageList.clean
   return packageList.sorted
 
-proc generate_package_list(listCommand: string): seq[string] =
+proc generatePackageList(listCommand: string): seq[string] =
   # Generates a newline seperated list of packages, and returns it
   # as a sorted seq[string]
-  var packageList: seq[string]
+  return split(execProcess(listCommand))
 
-  if listCommand.isEmptyOrWhitespace:
-    packageList = split(execProcess(listCommand))
-  else:
-    if detectOS(ArchLinux) or detectOS(Archbang) or detectOS(BlackArch):
-      packageList = split(execProcess("pacman -Qqe"))
-    elif detectOS(Debian) or detectOS(Ubuntu):
-      packageList = split(execProcess("apt-mark showmanual | sort -u"))
-    else: # Artix is missing currently. https://github.com/nim-lang/Nim/pull/18629
-      packageList = split(execProcess("pacman -Qqe"))
-
-
-  return packageList.sorted
+proc removeOrphans(command: string) =
+  # Installs or removes a list of packages
+  let pid = startProcess(command, options = {poEchoCmd, poInteractive,
+        poParentStreams, poUsePath, poEvalCommand})
+  pid.waitForExit.echo
+  pid.close
 
 proc installRemove(command: string, packages: seq[string]) =
   # Installs or removes a list of packages
   if packages.clean.len >= 1:
     let fullCommand = command & " " & packages.join(sep = " ")
-    fullCommand.echo
-    let pid = startProcess(fullCommand, options = {poParentStreams, poUsePath,
-        poEvalCommand})
+    let pid = startProcess(fullCommand, options = {poEchoCmd, poInteractive,
+        poParentStreams, poUsePath, poEvalCommand})
     discard pid.waitForExit
     pid.close
 
@@ -107,24 +99,33 @@ proc createWorldFile(worldFile: string, listCommand: string) =
 when isMainModule:
   var config = getEnvConfig(Worldedit)
 
-  let args = docopt(doc, version = "Renamer 0.1")
+  let args = docopt(doc, version = "Renamer 0.2")
   if args["--worldfile"]: config.world = $args["--worldfile"]
   if args["--list-command"]: config.listCommand = $args["--list-command"]
   if args["--install-command"]: config.installCommand = $args["--install-command"]
-  if args["--shell-install-command"]: config.shellInstallCommand = $args["--shell-install-command"]
   if args["--remove-command"]: config.removeCommand = $args["--remove-command"]
-  if args["--shell-remove-command"]: config.shellRemoveCommand = $args["--shell-remove-command"]
+  if args["--orphans-command"]: config.orphansCommand = $args["--orphans-command"]
   if args["--sync"]: config.sync = parseBool($args["--sync"])
   if args["--diff"]: config.diff = parseBool($args["--diff"])
   if args["--init"]: config.init = parseBool($args["--init"])
   if args["--install"]: config.install = $args["--install"]
   if args["--remove"]: config.remove = $args["--remove"]
   if args["--bash"]: config.bash = parseBool($args["--bash"])
+  if args["--orphans"]: config.orphans = parseBool($args["--orphans"])
 
   if config.world.isEmptyOrWhitespace:
     config.world = "/etc/worldedit/worldfile"
   else:
     config.world = config.world.expandTilde
+
+  if config.listCommand.isEmptyOrWhitespace:
+    config.listCommand = detect.listCommand()
+  if config.installCommand.isEmptyOrWhitespace:
+    config.installCommand = detect.installCommand()
+  if config.removeCommand.isEmptyOrWhitespace:
+    config.removeCommand = detect.removeCommand()
+  if config.orphansCommand.isEmptyOrWhitespace:
+    config.orphansCommand = detect.orphansCommand()
 
   if config.init:
     fmt"Creating world file {config.world}".echo
@@ -132,7 +133,7 @@ when isMainModule:
   else:
     let world = readWorldFile(config.world)
 
-    let package_list = generate_package_list(config.listCommand)
+    let package_list = generatePackageList(config.listCommand)
     let removed = package_list.filterIt(it notin world).clean
     let added = world.filterIt(it notin package_list).clean
 
@@ -151,9 +152,11 @@ when isMainModule:
       #TODO Find and remove from worldfile
       installRemove(config.removeCommand, @[config.remove])
     elif config.bash:
-      let ic = config.shellInstallCommand & " " & added.join(sep = " ")
-      let rc = config.shellRemoveCommand & " " & removed.join(sep = " ")
+      let ic = config.installCommand & " " & added.join(sep = " ")
+      let rc = config.removeCommand & " " & removed.join(sep = " ")
       if added.len > 0: stdout.write ic
       if added.len > 0 and removed.len > 0: stdout.write " && "
       if removed.len > 0: stdout.write rc
       stdout.flushFile
+    elif config.orphans:
+      removeOrphans(config.orphansCommand)
