@@ -81,10 +81,10 @@ proc installRemove(command: string, packages: seq[string], bash: bool) =
     let fullCommand = command & " " & packages.join(sep = " ")
     fullCommand.echo
     if not bash:
-      let pid = startProcess(fullCommand, options = {poParentStreams, poUsePath, poEvalCommand})
+      let pid = startProcess(fullCommand, options = {poParentStreams, poUsePath,
+          poEvalCommand})
       discard pid.waitForExit
       pid.close
-
 
 proc listDiff(added: seq[string], removed: seq[string]) =
   echo ("Added: " & added.join(sep = " "))
@@ -139,8 +139,14 @@ when isMainModule:
       # Installs package, and adds it to worldfile
       installRemove(config.installCommand, @[config.install], config.bash)
       var world = config.world.read_file.split
-      let newWorld = (world & config.install.split).clean.join(sep="\n")
+      let newWorld = (world & config.install.split).clean.join(sep = "\n")
       writeFile(config.world, newWorld)
     elif not config.remove.isEmptyOrWhitespace:
       #TODO Find and remove from worldfile
       installRemove(config.removeCommand, @[config.remove], config.bash)
+    elif config.bash:
+      let ic = config.installCommand & " " & added.join(sep = " ") & " && "
+      let rc = config.removeCommand & " " & removed.join(sep = " ")
+      if added.len > 0: stdout.write ic
+      if removed.len > 0: stdout.write rc
+      stdout.flushFile
