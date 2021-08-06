@@ -114,3 +114,10 @@ something like this.
 ```bash
 alias aorphans="yay -Qtdq | yay -Rns -"
 ```
+
+## Troubleshooting
+Sometimes there are conflicts that can't be handled automatically. You can
+get an interactive shell by using
+```bash
+﻿bash -c $(worldedit --bash)﻿
+```
