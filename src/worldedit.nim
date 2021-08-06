@@ -15,22 +15,25 @@ Usage:
   worldedit [options]
 
 Options:
-  -h, --help                   Show this screen.
-  -v, --version                Show version.
-  --worldfile file             Worldfile to use
-  --init                       Initializes a worldfile if none are provided
-  --list-command=<command>     List all packages command
-  --install-command=<command>  Package install command
-  --remove-command=<command>   Package remove command
-  --sync                       Add/remove packages to match the worldfile
-  --diff                       Lists the packages that are added/removed
-  --install=<package>          Installs a package and appends to the worldfile
-  --remove=<package>           Removes a package and deletes the entry in the worldfile [WIP]
-  --bash                       Outputs commands that can be piped into bash
+  -h, --help                         Show this screen.
+  -v, --version                      Show version.
+  --worldfile file                   Worldfile to use
+  --init                             Initializes a worldfile if none are provided
+  --list-command=<command>           List all packages command
+  --install-command=<command>        Package install command
+  --remove-command=<command>         Package remove command
+  --shell-install-command=<command>  Package install command (interactive)
+  --shell-remove-command=<command>   Package remove command (interactive)
+  --sync                             Add/remove packages to match the worldfile
+  --diff                             Lists the packages that are added/removed
+  --install=<package>                Installs a package and appends to the worldfile
+  --remove=<package>                 Removes a package and deletes the entry in the worldfile [WIP]
+  --bash                             Outputs commands that can be piped into bash
 """
 type
   Worldedit = object
-    install, installCommand, listCommand, remove, removeCommand, world: string
+    install, installCommand, listCommand, remove, removeCommand,
+        shellInstallCommand, shellRemoveCommand, world: string
     bash, diff, init, sync: bool
 
 proc clean(input: seq[string]): seq[string] =
@@ -75,16 +78,15 @@ proc generate_package_list(listCommand: string): seq[string] =
 
   return packageList.sorted
 
-proc installRemove(command: string, packages: seq[string], bash: bool) =
+proc installRemove(command: string, packages: seq[string]) =
   # Installs or removes a list of packages
   if packages.clean.len >= 1:
     let fullCommand = command & " " & packages.join(sep = " ")
     fullCommand.echo
-    if not bash:
-      let pid = startProcess(fullCommand, options = {poParentStreams, poUsePath,
-          poEvalCommand})
-      discard pid.waitForExit
-      pid.close
+    let pid = startProcess(fullCommand, options = {poParentStreams, poUsePath,
+        poEvalCommand})
+    discard pid.waitForExit
+    pid.close
 
 proc listDiff(added: seq[string], removed: seq[string]) =
   echo ("Added: " & added.join(sep = " "))
@@ -108,7 +110,9 @@ when isMainModule:
   if args["--worldfile"]: config.world = $args["--worldfile"]
   if args["--list-command"]: config.listCommand = $args["--list-command"]
   if args["--install-command"]: config.installCommand = $args["--install-command"]
+  if args["--shell-install-command"]: config.shellInstallCommand = $args["--shell-install-command"]
   if args["--remove-command"]: config.removeCommand = $args["--remove-command"]
+  if args["--shell-remove-command"]: config.shellRemoveCommand = $args["--shell-remove-command"]
   if args["--sync"]: config.sync = parseBool($args["--sync"])
   if args["--diff"]: config.diff = parseBool($args["--diff"])
   if args["--init"]: config.init = parseBool($args["--init"])
@@ -126,27 +130,28 @@ when isMainModule:
   else:
     let world = readWorldFile(config.world)
 
-    let package_list = generate_package_list(config.installCommand)
+    let package_list = generate_package_list(config.listCommand)
     let removed = package_list.filterIt(it notin world).clean
     let added = world.filterIt(it notin package_list).clean
 
     if config.sync:
-      installRemove(config.installCommand, added, config.bash)
-      installRemove(config.removeCommand, removed, config.bash)
+      installRemove(config.installCommand, added)
+      installRemove(config.removeCommand, removed)
     elif config.diff:
       listDiff(added, removed)
     elif not config.install.isEmptyOrWhitespace:
       # Installs package, and adds it to worldfile
-      installRemove(config.installCommand, @[config.install], config.bash)
+      installRemove(config.installCommand, @[config.install])
       var world = config.world.read_file.split
       let newWorld = (world & config.install.split).clean.join(sep = "\n")
       writeFile(config.world, newWorld)
     elif not config.remove.isEmptyOrWhitespace:
       #TODO Find and remove from worldfile
-      installRemove(config.removeCommand, @[config.remove], config.bash)
+      installRemove(config.removeCommand, @[config.remove])
     elif config.bash:
-      let ic = config.installCommand & " " & added.join(sep = " ") & " && "
-      let rc = config.removeCommand & " " & removed.join(sep = " ")
+      let ic = config.shellInstallCommand & " " & added.join(sep = " ")
+      let rc = config.shellRemoveCommand & " " & removed.join(sep = " ")
       if added.len > 0: stdout.write ic
+      if added.len > 0 and removed.len > 0: stdout.write " && "
       if removed.len > 0: stdout.write rc
       stdout.flushFile

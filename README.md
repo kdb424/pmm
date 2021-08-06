@@ -119,5 +119,5 @@ alias aorphans="yay -Qtdq | yay -Rns -"
 Sometimes there are conflicts that can't be handled automatically. You can
 get an interactive shell by using
 ```bash
-﻿bash -c $(worldedit --bash)﻿
+$(worldedit --bash)﻿
 ```

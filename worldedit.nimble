@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.1.6"
+version       = "0.1.7"
 author        = "Kyle Brown"
 description   = "Gentoo's world file, but everywhere."
 license       = "MIT"
