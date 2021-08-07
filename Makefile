@@ -2,20 +2,24 @@
 # worldedit
 #
 # @file
-# @version 0.1
+# @version 0.3
 
 SRC = *.nim
 SRCDIR = src
 BIN = worldedit
+MAN = worldedit.1
 PREFIX := /usr/local
 DESTDIR :=
 
 .PHONY: default
 default: release
 
+.PHONY: all
+all: pretty release man docs
+
 .PHONY: release
 release:
-	nimble build '--cc:clang -d:release'
+	nimble build '--cc:clang -d:release' -y
 
 .PHONY: debug
 debug:
@@ -35,7 +39,7 @@ run:
 
 .PHONY: docs
 docs:
-	nim doc ${SRCDIR}/${SRC}
+	nimble doc ${SRCDIR}/${SRC}
 
 .PHONY: pretty
 pretty:
@@ -47,6 +51,15 @@ test:
 
 .PHONY: install
 install:
+	install -Dm755 ${MAN} $(DESTDIR)$(PREFIX)/man/${MAN}
 	install -Dm755 ${BIN} $(DESTDIR)$(PREFIX)/bin/${BIN}
+
+.PHONY: man
+man:
+	pandoc worldedit.1.md -s -t man | gzip > worldedit.1
+
+.PHONY: testman
+testman: man
+	cat worldedit.1 | man -l -
 
 # end

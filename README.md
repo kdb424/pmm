@@ -10,6 +10,17 @@ Emulating Gentoo's world files and sets for other package managers.
 Hint: Install Nim with Choosenim ([Github](https://github.com/dom96/choosenim))
 
 ## Installation
+Arch Linux (AUR)
+
+```bash
+pacman -S --needed git base-devel
+git clone https://aur.archlinux.org/worldedit-git.git
+cd worldedit
+makepkg -si
+```
+
+or
+
 Directly with Nimble (with url)
 
 ```bash
@@ -43,7 +54,7 @@ Options:
   -h, --help                         Show this screen.
   -v, --version                      Show version.
   --worldfile file                   Worldfile to use
-  --init                             Initializes a worldfile if none are provided
+  --init                             Initializes a worldfile if it does not exist
   --list-command=<command>           List all packages command
   --install-command=<command>        Package install command
   --remove-command=<command>         Package remove command
@@ -51,7 +62,7 @@ Options:
   --sync                             Add/remove packages to match the worldfile
   --diff                             Lists the packages that are added/removed
   --install=<package>                Installs a package and appends to the worldfile
-  --remove=<package>                 Removes a package and deletes the entry in the worldfile [WIP]
+  --remove=<package>                 Removes a package and deletes the entry in the worldfile
   --bash                             Outputs commands that can be piped into bash
   --orphans                          Removes things marked as orphans from your system
 ```

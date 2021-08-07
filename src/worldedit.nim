@@ -10,7 +10,7 @@ import strutils
 import typetraits
 
 let doc = """
-Worldedit.
+worldedit - Emulating Gentoo's world files and sets for other package managers.
 
 Usage:
   worldedit [options]
@@ -19,7 +19,7 @@ Options:
   -h, --help                         Show this screen.
   -v, --version                      Show version.
   --worldfile file                   Worldfile to use
-  --init                             Initializes a worldfile if none are provided
+  --init                             Initializes a worldfile if it does not exist
   --list-command=<command>           List all packages command
   --install-command=<command>        Package install command
   --remove-command=<command>         Package remove command
@@ -27,7 +27,7 @@ Options:
   --sync                             Add/remove packages to match the worldfile
   --diff                             Lists the packages that are added/removed
   --install=<package>                Installs a package and appends to the worldfile
-  --remove=<package>                 Removes a package and deletes the entry in the worldfile [WIP]
+  --remove=<package>                 Removes a package and deletes the entry in the worldfile
   --bash                             Outputs commands that can be piped into bash
   --orphans                          Removes things marked as orphans from your system
 """
@@ -41,24 +41,33 @@ proc clean(input: seq[string]): seq[string] =
 
 proc readWorldFile(input: string): seq[string] =
   # Recursively reads in worldfiles, and sets
-  let packageFile = read_file(input).split
-  var packageList: seq[string]
+  try:
+    let packageFile = read_file(input).split
+    var packageList: seq[string]
 
-  for i in packageFile:
-    if i.startsWith("@"): # is a set name
-      let setList = readWorldFile(
-        joinpath(input.parentDir, i.strip(chars = {'@'}))
-      )
+    for i in packageFile:
+      if i.startsWith("@"): # is a set name
+        try:
+          let setList = readWorldFile(
+            joinpath(input.parentDir, i.strip(chars = {'@'}))
+          )
+          packageList = concat(packageList, setList)
+        except:
+          fmt"Could not read {i} file.".echo
+          quit(QuitFailure)
 
-      packageList = concat(packageList, setList)
-    elif i.startsWith("#"): # is a comment
-      discard
-    elif not i.isEmptyOrWhitespace: # is a package name
-      packageList.insert(i)
+      elif i.startsWith("#"): # is a comment
+        discard
+      elif not i.isEmptyOrWhitespace: # is a package name
+        packageList.insert(i)
 
-  # filter out empty/whitespace, then dedupe on return
-  packageList = packageList.clean
-  return packageList.sorted
+    # filter out empty/whitespace, then dedupe on return
+    packageList = packageList.clean
+    return packageList.sorted
+  except:
+    fmt"Could not read {input} file.".echo
+    quit(QuitFailure)
+
 
 proc generatePackageList(listCommand: string): seq[string] =
   # Generates a newline seperated list of packages, and returns it
@@ -99,7 +108,7 @@ proc createWorldFile(worldFile: string, listCommand: string) =
 when isMainModule:
   var config = getEnvConfig(Worldedit)
 
-  let args = docopt(doc, version = "Renamer 0.2")
+  let args = docopt(doc, version = "Renamer 0.3")
   if args["--worldfile"]: config.world = $args["--worldfile"]
   if args["--list-command"]: config.listCommand = $args["--list-command"]
   if args["--install-command"]: config.installCommand = $args["--install-command"]
@@ -149,8 +158,15 @@ when isMainModule:
       let newWorld = (world & config.install.split).clean.join(sep = "\n")
       writeFile(config.world, newWorld)
     elif not config.remove.isEmptyOrWhitespace:
-      #TODO Find and remove from worldfile
-      installRemove(config.removeCommand, @[config.remove])
+      var world = config.world.read_file.split
+      let toDelete = find(world, config.remove)
+      if toDelete != -1:
+        delete(world, toDelete)
+        let newWorld = world.clean.join(sep = "\n")
+        writeFile(config.world, newWorld)
+        installRemove(config.removeCommand, @[config.remove])
+      else:
+        fmt"Could not find {config.remove} in worldfile.".echo
     elif config.bash:
       let ic = config.installCommand & " " & added.join(sep = " ")
       let rc = config.removeCommand & " " & removed.join(sep = " ")
