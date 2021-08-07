@@ -1,0 +1,20 @@
+#compdef worldedit
+
+typeset -A opt_args
+local context state line
+
+_arguments \
+    {-h,--help}"[display help information]" \
+    {-v,--version}"[show version]" \
+    "--worldfile[Set the world file]:FILENAME:_files" \
+    "--init[Initializes a worldfile]" \
+    "--list-command command[List all packages command]" \
+    "--install-command command[Package install command]" \
+    "--remove-command command[Package remove command]" \
+    "--orphans-command command[Orphans uninstall command]" \
+    "--sync[Add/remove packages to match the worldfile]" \
+    "--diff[Lists the packages that are added/removed]" \
+    "--install package[Installs a package and appends to the worldfile]" \
+    "--remove package[Removes a package and deletes the entry in the worldfile]" \
+    "--bash[Outputs commands that can be piped into bash]" \
+    "--orphans[Removes things marked as orphans from your system]"

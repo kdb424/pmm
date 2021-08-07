@@ -21,7 +21,7 @@ opposed to dependencies should be compatible with this application.
 : Show version.
 
 **--worldfile**=file
-: Worldfile to use
+: Set the worldfile
 
 **--init**
 : Initializes a worldfile if it does not exist
@@ -36,7 +36,7 @@ opposed to dependencies should be compatible with this application.
 : Package remove command
 
 **--orphans-command**
-: Orphans remove command
+: Orphans uninstall command
 
 **--sync**
 : Add/remove packages to match the worldfile

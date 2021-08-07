@@ -51,8 +51,8 @@ test:
 
 .PHONY: install
 install:
-	install -Dm755 ${MAN} $(DESTDIR)$(PREFIX)/man/${MAN}
-	install -Dm755 ${BIN} $(DESTDIR)$(PREFIX)/bin/${BIN}
+	install -Dm 755 ${MAN} $(DESTDIR)$(PREFIX)/man/${MAN}
+	install -Dm 755 ${BIN} $(DESTDIR)$(PREFIX)/bin/${BIN}
 
 .PHONY: man
 man:
