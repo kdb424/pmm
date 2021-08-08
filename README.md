@@ -166,11 +166,10 @@ and is what inspired this project. The world file is located at
 [sets here](https://wiki.gentoo.org/wiki//etc/portage/sets).
 
 ### Void
-UNTESTED: FEEDBACK IS REQUESTED. ONLY FOR TESTING.
 Default commands are below.
 ```bash
 export WORLDEDIT_INSTALL_COMMAND="sudo xbps-install"
 export WORLDEDIT_REMOVE_COMMAND="sudo xbps-pkgdb -m auto"
-export WORLDEDIT_LIST_COMMAND="sudo xbps-query -m | sed 's/-[0-9].*//g"
+export WORLDEDIT_LIST_COMMAND="sudo xbps-query -m | sed 's/-[0-9].*//g'"
 export WORLDEDIT_ORPHANS_COMMAND="sudo xpbs-remove -o"
 ```

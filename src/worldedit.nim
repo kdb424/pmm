@@ -108,7 +108,7 @@ proc createWorldFile(worldFile: string, listCommand: string) =
 when isMainModule:
   var config = getEnvConfig(Worldedit)
 
-  let args = docopt(doc, version = "Renamer 0.3")
+  let args = docopt(doc, version = "Renamer 0.3.1")
   if args["--worldfile"]: config.world = $args["--worldfile"]
   if args["--list-command"]: config.listCommand = $args["--list-command"]
   if args["--install-command"]: config.installCommand = $args["--install-command"]

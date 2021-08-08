@@ -18,7 +18,7 @@ proc listCommand*(): string =
   elif detectCommand("which apt-mark"):
     return "apt-mark showmanual | sort -u"
   elif detectCommand("which xbps-query"):
-    return "xbps-query -m | sed 's/-[0-9].*//g"
+    return "xbps-query -m | sed 's/-[0-9].*//g'"
   else:
     "Could not find a list command".echo
     quit(QuitFailure)
