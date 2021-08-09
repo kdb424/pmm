@@ -19,15 +19,15 @@ all: pretty release man docs
 
 .PHONY: release
 release:
-	nimble build '--cc:clang -d:release' -y
+	nimble build '--cc:clang -d:release --opt:size -d:strip' -y
+
+.PHONY: static
+static:
+	nimble build '--cc:clang -d:release --passL:-static --opt:size -d:strip' -y
 
 .PHONY: debug
 debug:
 	nimble build '--cc:clang'
-
-.PHONY: small
-small:
-	nimble build '--cc:gcc -d:danger -d:strip --opt:size -d:release --passC:-flto --passL:-flto'
 
 .PHONY: clean
 clean:
