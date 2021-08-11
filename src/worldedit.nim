@@ -108,7 +108,7 @@ proc createWorldFile(worldFile: string, listCommand: string) =
 when isMainModule:
   var config = getEnvConfig(Worldedit)
 
-  let args = docopt(doc, version = "Renamer 0.3.1")
+  let args = docopt(doc, version = "Worldedit 0.3.2")
   if args["--worldfile"]: config.world = $args["--worldfile"]
   if args["--list-command"]: config.listCommand = $args["--list-command"]
   if args["--install-command"]: config.installCommand = $args["--install-command"]
@@ -147,8 +147,8 @@ when isMainModule:
     let added = world.filterIt(it notin package_list).clean
 
     if config.sync:
-      installRemove(config.installCommand, added)
       installRemove(config.removeCommand, removed)
+      installRemove(config.installCommand, added)
     elif config.diff:
       listDiff(added, removed)
     elif not config.install.isEmptyOrWhitespace:
@@ -170,9 +170,9 @@ when isMainModule:
     elif config.bash:
       let ic = config.installCommand & " " & added.join(sep = " ")
       let rc = config.removeCommand & " " & removed.join(sep = " ")
-      if added.len > 0: stdout.write ic
-      if added.len > 0 and removed.len > 0: stdout.write " && "
       if removed.len > 0: stdout.write rc
+      if added.len > 0 and removed.len > 0: stdout.write " && "
+      if added.len > 0: stdout.write ic
       stdout.flushFile
     elif config.orphans:
       removeOrphans(config.orphansCommand)
