@@ -140,11 +140,11 @@ when isMainModule:
     fmt"Creating world file {config.world}".echo
     createWorldFile(config.world, config.listCommand)
   else:
-    let world = readWorldFile(config.world)
+    let worldFile = readWorldFile(config.world)
 
     let package_list = generatePackageList(config.listCommand)
-    let removed = package_list.filterIt(it notin world).clean
-    let added = world.filterIt(it notin package_list).clean
+    let removed = package_list.filterIt(it notin worldFile).clean
+    let added = worldFile.filterIt(it notin package_list).clean
 
     if config.sync:
       installRemove(config.removeCommand, removed)
