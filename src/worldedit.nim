@@ -140,11 +140,11 @@ when isMainModule:
     fmt"Creating world file {config.world}".echo
     createWorldFile(config.world, config.listCommand)
   else:
-    let worldFile = readWorldFile(config.world)
+    var world = readWorldFile(config.world)
 
     let package_list = generatePackageList(config.listCommand)
-    let removed = package_list.filterIt(it notin worldFile).clean
-    let added = worldFile.filterIt(it notin package_list).clean
+    let removed = package_list.filterIt(it notin world).clean
+    let added = world.filterIt(it notin package_list).clean
 
     if config.sync:
       installRemove(config.removeCommand, removed)
@@ -154,11 +154,9 @@ when isMainModule:
     elif not config.install.isEmptyOrWhitespace:
       # Installs package, and adds it to worldfile
       installRemove(config.installCommand, @[config.install])
-      var world = config.world.read_file.split
       let newWorld = (world & config.install.split).clean.join(sep = "\n")
       writeFile(config.world, newWorld)
     elif not config.remove.isEmptyOrWhitespace:
-      var world = config.world.read_file.split
       let toDelete = find(world, config.remove)
       if toDelete != -1:
         delete(world, toDelete)
