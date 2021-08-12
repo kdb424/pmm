@@ -108,7 +108,7 @@ proc createWorldFile(worldFile: string, listCommand: string) =
 when isMainModule:
   var config = getEnvConfig(Worldedit)
 
-  let args = docopt(doc, version = "Worldedit 0.3.2")
+  let args = docopt(doc, version = "Worldedit 0.3.3")
   if args["--worldfile"]: config.world = $args["--worldfile"]
   if args["--list-command"]: config.listCommand = $args["--list-command"]
   if args["--install-command"]: config.installCommand = $args["--install-command"]
@@ -154,13 +154,15 @@ when isMainModule:
     elif not config.install.isEmptyOrWhitespace:
       # Installs package, and adds it to worldfile
       installRemove(config.installCommand, @[config.install])
-      let newWorld = (world & config.install.split).clean.join(sep = "\n")
+      var worldNoRecurse = config.world.read_file.split
+      let newWorld = (worldNoRecurse & config.install.split).clean.join(sep = "\n")
       writeFile(config.world, newWorld)
     elif not config.remove.isEmptyOrWhitespace:
-      let toDelete = find(world, config.remove)
+      var worldNoRecurse = config.world.read_file.split
+      let toDelete = find(worldNoRecurse, config.remove)
       if toDelete != -1:
-        delete(world, toDelete)
-        let newWorld = world.clean.join(sep = "\n")
+        delete(worldNoRecurse, toDelete)
+        let newWorld = worldNoRecurse.clean.join(sep = "\n")
         writeFile(config.world, newWorld)
         installRemove(config.removeCommand, @[config.remove])
       else:
