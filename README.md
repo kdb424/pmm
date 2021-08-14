@@ -1,6 +1,10 @@
 # worldedit
-Emulating Gentoo's world files and sets for other package managers.
-[Gentoo sets](https://wiki.gentoo.org/wiki//etc/portage/sets)
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT
+)[![Linux](https://svgshare.com/i/Zhy.svg)](https://svgshare.com/i/Zhy.svg
+)<a href="https://ko-fi.com/kdb424"><img src="https://i.imgur.com/9T0bvqO.png" alt="kofibadge" align="right"/></a>
+
+Emulating Gentoo's world files and [sets](https://wiki.gentoo.org/wiki//etc/portage/sets) for other package managers.
 
 ## Requirements
 
