@@ -1,4 +1,4 @@
-#compdef worldedit
+#compdef pmm
 
 typeset -A opt_args
 local context state line

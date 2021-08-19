@@ -1,4 +1,4 @@
-# worldedit
+# pmm - Package manager manager
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT
 )[![Linux](https://svgshare.com/i/Zhy.svg)](https://svgshare.com/i/Zhy.svg
@@ -18,8 +18,8 @@ Arch Linux (AUR)
 
 ```bash
 pacman -S --needed git base-devel
-git clone https://aur.archlinux.org/worldedit-git.git
-cd worldedit
+git clone https://aur.archlinux.org/pmm-git.git
+cd pmm
 makepkg -si
 ```
 
@@ -29,7 +29,7 @@ Directly with Nimble (with url)
 
 ```bash
 # Install directly with Nimble (with url)
-nimble install https://github.com/kdb424/worldedit
+nimble install https://github.com/kdb424/pmm
 ```
 
 or
@@ -38,10 +38,10 @@ Manually with Nimble
 
 ```bash
 # Clone repo
-git clone https://github.com/kdb424/worldedit
+git clone https://github.com/kdb424/pmm
 
 # go to folder
-cd worldedit
+cd pmm
 
 # Install (with Nimble)
 nimble install -y
@@ -49,10 +49,10 @@ nimble install -y
 
 ## Usage
 ```bash
-Worldedit.
+Pmm.
 
 Usage:
-  worldedit [options]
+  pmm [options]
 
 Options:
   -h, --help                         Show this screen.
@@ -87,22 +87,22 @@ file in use can be seen below.
 
 ### Default worldfile location
 ```
-/etc/worldedit/worldfile
+/etc/pmm/worldfile
 ```
 
 ### Overriding the worldfile location
 ```bash
-export WORLDEDIT_WORLD="~/.config/worldedit/world"
+export PMM_WORLD="~/.config/pmm/world"
 ```
 
 ### Example
 ```bash
-╭─kdb424@planex ~/.config/worldedit
+╭─kdb424@planex ~/.config/pmm
 ╰─$ ls
 amy    bluetooth  gui         laptop  openrc    planex  sway      wireless
 artix  dev        guisupport  misc    pipewire  pulse   terminal  zfs
 
-╭─kdb424@planex ~/.config/worldedit
+╭─kdb424@planex ~/.config/pmm
 ╰─$ cat planex
 # Sets
 @artix
@@ -122,7 +122,7 @@ efibootmgr
 piper
 radeontop
 refind
-╭─kdb424@planex ~/.config/worldedit
+╭─kdb424@planex ~/.config/pmm
 ╰─$ cat pulse
 pulseaudio
 pulseaudio-alsa
@@ -133,7 +133,7 @@ pulseeffects-legacy
 The example configuration doesn't actually remove packages, but mark them
 as orphans. Make sure to clean your system occasionally with
 ```bash
-worldedit --orphans
+pmm --orphans
 ```
 
 ## Linux Distros
@@ -144,23 +144,23 @@ already, and this tool's functions would conflict with it.
 [Alpine world file](https://docs.alpinelinux.org/user-handbook/0.1a/Working/apk.html#_world) 
 
 ### Arch (and Arch-like distros)
-Default commands are below. It will try to detect if `yay` is installed. Worldedit will
+Default commands are below. It will try to detect if `yay` is installed. Pmm will
 fall back to `sudo pacman` if `yay` is not detected.
 ```bash
-export WORLDEDIT_INSTALL_COMMAND="sudo pacman -S --asexplicit"
-export WORLDEDIT_REMOVE_COMMAND="sudo pacman -D --asdeps"
-export WORLDEDIT_LIST_COMMAND="sudo pacman -Qqe"
-export WORLDEDIT_ORPHANS_COMMAND="pacman -Qtdq | sudo pacman -Rns -"
+export PMM_INSTALL_COMMAND="sudo pacman -S --asexplicit"
+export PMM_REMOVE_COMMAND="sudo pacman -D --asdeps"
+export PMM_LIST_COMMAND="sudo pacman -Qqe"
+export PMM_ORPHANS_COMMAND="pacman -Qtdq | sudo pacman -Rns -"
 ```
 
 ### Debian/Ubuntu/Apt
 Default commands are below. This relies on apt-mark to get a list of packages, as well as
 marking them as orphans or dependencies of other programs.
 ```bash
-export WORLDEDIT_INSTALL_COMMAND="sudo apt install"
-export WORLDEDIT_REMOVE_COMMAND="sudo apt-mark auto"
-export WORLDEDIT_LIST_COMMAND="sudo apt-mark showmanual | sort -u"
-export WORLDEDIT_ORPHANS_COMMAND="sudo apt autoremove"
+export PMM_INSTALL_COMMAND="sudo apt install"
+export PMM_REMOVE_COMMAND="sudo apt-mark auto"
+export PMM_LIST_COMMAND="sudo apt-mark showmanual | sort -u"
+export PMM_ORPHANS_COMMAND="sudo apt autoremove"
 ```
 
 ### Gentoo
@@ -172,8 +172,8 @@ and is what inspired this project. The world file is located at
 ### Void
 Default commands are below.
 ```bash
-export WORLDEDIT_INSTALL_COMMAND="sudo xbps-install"
-export WORLDEDIT_REMOVE_COMMAND="sudo xbps-pkgdb -m auto"
-export WORLDEDIT_LIST_COMMAND="sudo xbps-query -m | sed 's/-[0-9].*//g'"
-export WORLDEDIT_ORPHANS_COMMAND="sudo xpbs-remove -o"
+export PMM_INSTALL_COMMAND="sudo xbps-install"
+export PMM_REMOVE_COMMAND="sudo xbps-pkgdb -m auto"
+export PMM_LIST_COMMAND="sudo xbps-query -m | sed 's/-[0-9].*//g'"
+export PMM_ORPHANS_COMMAND="sudo xpbs-remove -o"
 ```

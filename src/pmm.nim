@@ -10,10 +10,10 @@ import strutils
 import typetraits
 
 let doc = """
-worldedit - Emulating Gentoo's world files and sets for other package managers.
+pmm - Emulating Gentoo's world files and sets for other package managers.
 
 Usage:
-  worldedit [options]
+  pmm [options]
 
 Options:
   -h, --help                         Show this screen.
@@ -32,7 +32,7 @@ Options:
   --orphans                          Removes things marked as orphans from your system
 """
 type
-  Worldedit = object
+  Pmm = object
     install, installCommand, listCommand, orphansCommand, remove, removeCommand, world: string
     bash, diff, init, orphans, sync: bool
 
@@ -106,9 +106,9 @@ proc createWorldFile(worldFile: string, listCommand: string) =
       writeFile(worldFile, world.join(sep = "\n"))
 
 when isMainModule:
-  var config = getEnvConfig(Worldedit)
+  var config = getEnvConfig(Pmm)
 
-  let args = docopt(doc, version = "Worldedit 0.3.3")
+  let args = docopt(doc, version = "Pmm 0.3.3")
   if args["--worldfile"]: config.world = $args["--worldfile"]
   if args["--list-command"]: config.listCommand = $args["--list-command"]
   if args["--install-command"]: config.installCommand = $args["--install-command"]
@@ -123,7 +123,7 @@ when isMainModule:
   if args["--orphans"]: config.orphans = parseBool($args["--orphans"])
 
   if config.world.isEmptyOrWhitespace:
-    config.world = "/etc/worldedit/worldfile"
+    config.world = "/etc/pmm/worldfile"
   else:
     config.world = config.world.expandTilde
 

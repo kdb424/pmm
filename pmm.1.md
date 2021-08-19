@@ -1,10 +1,10 @@
-% worldedit(1)
+% pmm(1)
 
 # Name
-worldedit - Emulating Gentoo's world files and sets for other package managers.
+pmm - Emulating Gentoo's world files and sets for other package managers.
 
 # Synopsis
-worldedit [options]
+pmm [options]
 
 # DESCRIPTION
 Recreates Gentoo's world files for other distros. It hooks the native package manager
@@ -64,7 +64,7 @@ opposed to dependencies should be compatible with this application.
 : Failure
 
 # BUGS
-https://github.com/kdb424/worldedit/issues
+https://github.com/kdb424/pmm/issues
 
 # COPYRIGHT
 MIT License Copyright (c) 2021 Kyle Brown

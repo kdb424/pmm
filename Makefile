@@ -1,13 +1,13 @@
 ##
-# worldedit
+# pmm
 #
 # @file
 # @version 0.3
 
 SRC = *.nim
 SRCDIR = src
-BIN = worldedit
-MAN = worldedit.1
+BIN = pmm
+MAN = pmm.1
 PREFIX := /usr/local
 DESTDIR :=
 
@@ -56,10 +56,10 @@ install:
 
 .PHONY: man
 man:
-	pandoc worldedit.1.md -s -t man | gzip > worldedit.1
+	pandoc pmm.1.md -s -t man | gzip > pmm.1
 
 .PHONY: testman
 testman: man
-	cat worldedit.1 | man -l -
+	cat pmm.1 | man -l -
 
 # end

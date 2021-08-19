@@ -5,7 +5,7 @@ author        = "Kyle Brown"
 description   = "Gentoo's world file, but everywhere."
 license       = "MIT"
 srcDir        = "src"
-bin           = @["worldedit"]
+bin           = @["pmm"]
 
 
 # Dependencies
