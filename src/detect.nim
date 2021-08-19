@@ -19,6 +19,8 @@ proc listCommand*(): string =
     return "apt-mark showmanual | sort -u"
   elif detectCommand("which xbps-query"):
     return "xbps-query -m | sed 's/-[0-9].*//g'"
+  elif detectCommand("which rpm"):
+    return """rpm -qa | sort | sed -e 's/\([^.]*\).*/\1/' -e 's/\(.*\)-.*/\1/'"""
   else:
     "Could not find a list command".echo
     quit(QuitFailure)
@@ -32,6 +34,8 @@ proc installCommand*(): string =
     return "sudo apt install"
   elif detectCommand("which xbps-install"):
     return "sudo xbps-install"
+  elif detectCommand("which dnf"):
+    return "sudo dnf install"
   else:
     "Could not find an install command".echo
     quit(QuitFailure)
@@ -43,8 +47,8 @@ proc removeCommand*(): string =
     return "sudo pacman -D --asdeps"
   elif detectCommand("which apt-mark"):
     return "sudo apt-mark auto"
-  elif detectCommand("which xbps-pkgdb"):
-    return "sudo xbps-pkgdb -m auto"
+  elif detectCommand("which dnf"):
+    return "sudo dnf mark remove"
   else:
     "Could not find a remove command".echo
     quit(QuitFailure)
@@ -56,6 +60,8 @@ proc orphansCommand*(): string =
     return "sudo apt autoremove"
   elif detectCommand("which xbps-remove"):
     return "sudo xbps-remove -o"
+  elif detectCommand("which dnf"):
+    return "sudo dnf autoremove"
   else:
     "Could not find an orphans command".echo
     quit(QuitFailure)

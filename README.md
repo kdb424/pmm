@@ -163,6 +163,16 @@ export PMM_LIST_COMMAND="sudo apt-mark showmanual | sort -u"
 export PMM_ORPHANS_COMMAND="sudo apt autoremove"
 ```
 
+### Fedora
+Default commands are below. This relies on rpm to get a list of packages, and dnf to
+mark them as orphans or dependencies of other programs.
+```bash
+export PMM_INSTALL_COMMAND="sudo dnf install"
+export PMM_REMOVE_COMMAND="sudo dnf mark remove"
+export PMM_LIST_COMMAND="rpm -qa | sort | sed -e 's/\([^.]*\).*/\1/' -e 's/\(.*\)-.*/\1/'"
+export PMM_ORPHANS_COMMAND="sudo dnf autoremove"
+```
+
 ### Gentoo
 This package is not needed on Gentoo. Portage provides all of these functions
 and is what inspired this project. The world file is located at 
