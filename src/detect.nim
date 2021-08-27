@@ -56,6 +56,8 @@ proc removeCommand*(): string =
 proc orphansCommand*(): string =
   if detectCommand("which yay"):
     return "yay -Qtdq | yay -Rns -"
+  elif detectCommand("which pacman"):
+    return "pacman -Qtdq | sudo pacman -Rns -"
   elif detectCommand("which apt"):
     return "sudo apt autoremove"
   elif detectCommand("which xbps-remove"):
