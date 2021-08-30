@@ -39,7 +39,7 @@ type
 when isMainModule:
   var config = getEnvConfig(Pmm)
 
-  let args = docopt(doc, version = "Pmm 0.3.3")
+  let args = docopt(doc, version = "Pmm 0.4.0")
   if args["--worldfile"]: config.world = $args["--worldfile"]
   if args["--list-command"]: config.listCommand = $args["--list-command"]
   if args["--install-command"]: config.installCommand = $args["--install-command"]
@@ -54,7 +54,7 @@ when isMainModule:
   if args["--orphans"]: config.orphans = parseBool($args["--orphans"])
 
   if config.world.isEmptyOrWhitespace:
-    config.world = "/etc/pmm/worldfile"
+    config.world = "~/worldfile"
   else:
     config.world = config.world.expandTilde
 

@@ -14,7 +14,8 @@ Emulating Gentoo's world files and [sets](https://wiki.gentoo.org/wiki//etc/port
 Hint: Install Nim with Choosenim ([Github](https://github.com/dom96/choosenim))
 
 ## Installation
-Arch Linux (AUR)
+
+### Arch Linux (AUR)
 
 ```bash
 pacman -S --needed git base-devel
@@ -23,18 +24,20 @@ cd pmm
 makepkg -si
 ```
 
-or
+### Mac
+```bash
+brew tap kdb424/kdb424
+brew install --HEAD kdb424/kdb424/pmm
+```
 
-Directly with Nimble (with url)
+### Directly with Nimble (with url)
 
 ```bash
 # Install directly with Nimble (with url)
 nimble install https://github.com/kdb424/pmm
 ```
 
-or
-
-Manually with Nimble
+### Manually with Nimble
 
 ```bash
 # Clone repo
@@ -87,7 +90,7 @@ file in use can be seen below.
 
 ### Default worldfile location
 ```
-/etc/pmm/worldfile
+~/worldfile
 ```
 
 ### Overriding the worldfile location
@@ -184,6 +187,19 @@ Default commands are below.
 ```bash
 export PMM_INSTALL_COMMAND="sudo xbps-install"
 export PMM_REMOVE_COMMAND="sudo xbps-pkgdb -m auto"
-export PMM_LIST_COMMAND="sudo xbps-query -m | sed 's/-[0-9].*//g'"
+export PMM_LIST_COMMAND="xbps-query -m | xargs -n1 xbps-uhelper getpkgname"
 export PMM_ORPHANS_COMMAND="sudo xpbs-remove -o"
+```
+
+## Mac
+
+### Brew
+Brew uses it's own format for worldfiles. We support 
+[Brewfiles](https://thoughtbot.com/blog/brewfile-a-gemfile-but-for-homebrew) directly. 
+Default commands are below.
+```bash
+export PMM_INSTALL_COMMAND="brew install"
+export PMM_REMOVE_COMMAND="brew remove"
+export PMM_LIST_COMMAND="brew list"
+export PMM_ORPHANS_COMMAND="brew bundle --force cleanup $PMM_WORLDFILE"
 ```

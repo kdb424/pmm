@@ -92,32 +92,34 @@ proc createWorldFile*(worldFile: string, listCommand: string) =
 
     writeFile(worldFile, world.join(sep = "\n"))
 
-proc sync*(installCommand: string, removeCommand: string, added:seq[string], removed: seq[string]) =
-    installRemove(installCommand, added)
-    installRemove(removeCommand, removed)
+proc sync*(installCommand: string, removeCommand: string, added: seq[string],
+    removed: seq[string]) =
+  installRemove(installCommand, added)
+  installRemove(removeCommand, removed)
 
 proc install*(installCommand: string, pkglist: string, worldFile: string) =
-    let packages = @[pkglist]
-    # Installs package, and adds it to worldfile
-    installRemove(installCommand, packages)
-    var worldNoRecurse = worldFile.read_file.split
-    let newWorld = (worldNoRecurse & installCommand.split).clean.join(sep = "\n")
-    writeFile(worldFile, newWorld)
+  let packages = @[pkglist]
+  # Installs package, and adds it to worldfile
+  installRemove(installCommand, packages)
+  var worldNoRecurse = worldFile.read_file.split
+  let newWorld = (worldNoRecurse & installCommand.split).clean.join(sep = "\n")
+  writeFile(worldFile, newWorld)
 
 proc remove*(removeCommand: string, packages: string, worldFile: string) =
-    var worldNoRecurse = worldFile.read_file.split
-    let toDelete = find(worldNoRecurse, packages)
-    if toDelete != -1:
-        delete(worldNoRecurse, toDelete)
-        let newWorld = worldNoRecurse.clean.join(sep = "\n")
-        writeFile(worldFile, newWorld)
-        installRemove(removeCommand, @[packages])
-    else: fmt"Could not find {packages} in worldfile.".echo
+  var worldNoRecurse = worldFile.read_file.split
+  let toDelete = find(worldNoRecurse, packages)
+  if toDelete != -1:
+    delete(worldNoRecurse, toDelete)
+    let newWorld = worldNoRecurse.clean.join(sep = "\n")
+    writeFile(worldFile, newWorld)
+    installRemove(removeCommand, @[packages])
+  else: fmt"Could not find {packages} in worldfile.".echo
 
-proc bash*(installCommand: string, removeCommand: string, added: seq[string], removed: seq[string]) =
-    let ic = installCommand & " " & added.join(sep = " ")
-    let rc = removeCommand & " " & removed.join(sep = " ")
-    if removed.len > 0: stdout.write rc
-    if added.len > 0 and removed.len > 0: stdout.write " && "
-    if added.len > 0: stdout.write ic
-    stdout.flushFile
+proc bash*(installCommand: string, removeCommand: string, added: seq[string],
+    removed: seq[string]) =
+  let ic = installCommand & " " & added.join(sep = " ")
+  let rc = removeCommand & " " & removed.join(sep = " ")
+  if removed.len > 0: stdout.write rc
+  if added.len > 0 and removed.len > 0: stdout.write " && "
+  if added.len > 0: stdout.write ic
+  stdout.flushFile

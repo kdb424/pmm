@@ -18,11 +18,11 @@ proc listCommand*(): string =
   elif detectCommand("which apt-mark"):
     return "apt-mark showmanual | sort -u"
   elif detectCommand("which xbps-query"):
-    return "xbps-query -m | sed 's/-[0-9].*//g'"
+    return "xbps-query -m | xargs -n1 xbps-uhelper getpkgname"
   elif detectCommand("which rpm"):
     return """rpm -qa | sort | sed -e 's/\([^.]*\).*/\1/' -e 's/\(.*\)-.*/\1/'"""
   elif detectCommand("which brew"):
-    return "brew"
+    return "brew list"
   else:
     "Could not find a list command".echo
     quit(QuitFailure)
