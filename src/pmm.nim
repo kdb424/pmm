@@ -4,7 +4,6 @@ import docopt
 import envconfig
 import os
 import sequtils
-import strformat
 import strutils
 import typetraits
 
@@ -39,7 +38,7 @@ type
 when isMainModule:
   var config = getEnvConfig(Pmm)
 
-  let args = docopt(doc, version = "Pmm 0.4.0")
+  let args = docopt(doc, version = "Pmm 0.4.1")
   if args["--worldfile"]: config.world = $args["--worldfile"]
   if args["--list-command"]: config.listCommand = $args["--list-command"]
   if args["--install-command"]: config.installCommand = $args["--install-command"]
@@ -67,17 +66,16 @@ when isMainModule:
   if config.orphansCommand.isEmptyOrWhitespace:
     config.orphansCommand = detect.orphansCommand()
 
-  var world = readWorldFile(config.world)
-  var package_list = generatePackageList(config.listCommand)
-  let removed = package_list.filterIt(it notin world).clean
-  let added = world.filterIt(it notin package_list).clean
-
   if config.init:
-    fmt"Creating world file {config.world}".echo
     createWorldFile(config.world, config.listCommand)
   else:
+    var world = readWorldFile(config.world, config.listCommand)
+    var package_list = generatePackageList(config.listCommand, config.world)
+    let added = world.filterIt(it notin package_list).clean
+    let removed = package_list.filterIt(it notin world).clean
+
     if config.sync:
-      sync(config.installCommand, config.removeCommand, added, removed)
+      sync(config.installCommand, config.removeCommand, added, removed, config.world)
     elif config.diff:
       listDiff(added, removed)
     elif not config.install.isEmptyOrWhitespace:

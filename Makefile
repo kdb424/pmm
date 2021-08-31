@@ -27,7 +27,7 @@ static:
 
 .PHONY: debug
 debug:
-	nimble build '--cc:clang'
+	nimble build '--cc:clang' --verbose
 
 .PHONY: clean
 clean:
@@ -56,10 +56,10 @@ install:
 
 .PHONY: man
 man:
-	pandoc pmm.1.md -s -t man | gzip > pmm.1
+	pandoc pmm.1.md -s -t man -o pmm.1
 
 .PHONY: testman
 testman: man
-	cat pmm.1 | man -l -
+	man ./${MAN}
 
 # end

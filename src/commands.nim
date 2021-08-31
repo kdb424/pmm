@@ -7,26 +7,41 @@ import strutils
 import typetraits
 
 
-proc generatePackageList*(listCommand: string): seq[string] =
+proc brewBundleDump(): string =
+  const cmd = fmt"brew bundle dump -q --force --file=/tmp/pmm"
+  discard execProcess(cmd)
+  return "/tmp/pmm"
+
+proc brewBundleList(world: string): seq[string] =
+  let cmd = fmt"brew bundle list -q --file={world}"
+  return split(execProcess(cmd))
+
+proc generatePackageList*(listCommand: string, worldFile: string): seq[string] =
   # Generates a newline seperated list of packages, and returns it
   # as a sorted seq[string]
-  return split(execProcess(listCommand))
-
+  if "brew" in listCommand:
+    return brewBundleList(brewBundleDump())
+  else: return split(execProcess(listCommand))
 
 proc clean*(input: seq[string]): seq[string] =
   return filter(input, proc(x: string): bool = not x.isEmptyOrWhitespace).deduplicate
 
-proc readWorldFile*(input: string): seq[string] =
-  # Recursively reads in worldfiles, and sets
+proc readWorldFile*(input: string, listCommand: string): seq[string] =
   try:
-    let packageFile = read_file(input).split
+    # Checks for a brewfile, and creates a world file proper if it is one
+    var packageFile: seq[string]
+    if "brew" in listCommand:
+      return input.brewBundleList
+    else:
+      packageFile = read_file(input).split
+
     var packageList: seq[string]
 
     for i in packageFile:
       if i.startsWith("@"): # is a set name
         try:
           let setList = readWorldFile(
-            joinpath(input.parentDir, i.strip(chars = {'@'}))
+            joinpath(input.parentDir, i.strip(chars = {'@'})), listCommand
           )
           packageList = concat(packageList, setList)
         except:
@@ -45,8 +60,8 @@ proc readWorldFile*(input: string): seq[string] =
     fmt"Could not read {input} file.".echo
     quit(QuitFailure)
 
+
 proc removeOrphans*(command: string, worldFile: string) =
-  # Installs or removes a list of packages
   var cmd: string
   if "brew" in command: cmd = command & " --file=" & worldFile
   else: cmd = command
@@ -55,6 +70,7 @@ proc removeOrphans*(command: string, worldFile: string) =
           poParentStreams, poUsePath, poEvalCommand})
   pid.waitForExit.echo
   pid.close
+
 
 proc installRemove*(command: string, packages: seq[string]) =
   # Installs or removes a list of packages
@@ -83,7 +99,7 @@ proc createWorldFile*(worldFile: string, listCommand: string) =
     pid.close
 
   else: # Linux
-    let world = generatePackageList(listCommand)
+    let world = generatePackageList(listCommand, worldfile)
     # Create directory if it does not exist. No error if exists
     createDir(parentDir(worldFile))
     if worldFile.fileExists:
@@ -93,9 +109,16 @@ proc createWorldFile*(worldFile: string, listCommand: string) =
     writeFile(worldFile, world.join(sep = "\n"))
 
 proc sync*(installCommand: string, removeCommand: string, added: seq[string],
-    removed: seq[string]) =
-  installRemove(installCommand, added)
-  installRemove(removeCommand, removed)
+    removed: seq[string], worldFile: string) =
+  if "brew" in installCommand:
+    # sync with brew
+    let installCmd = fmt"brew bundle --force install -q --file={worldFile}"
+    discard execProcess(installCmd)
+    let removeCmd = fmt"brew bundle --force cleanup -q --file={worldFile}"
+    discard execProcess(removeCmd)
+  else:
+    installRemove(installCommand, added)
+    installRemove(removeCommand, removed)
 
 proc install*(installCommand: string, pkglist: string, worldFile: string) =
   let packages = @[pkglist]

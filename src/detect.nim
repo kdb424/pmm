@@ -33,7 +33,7 @@ proc installCommand*(): string =
   elif detectCommand("which pacman"):
     return "sudo pacman -S --asexplicit"
   elif detectCommand("which brew"):
-    return "brew install"
+    return "brew install -q"
   elif detectCommand("which xbps-install"):
     return "sudo xbps-install"
   elif detectCommand("which dnf"):
@@ -54,7 +54,7 @@ proc removeCommand*(): string =
   elif detectCommand("which dnf"):
     return "sudo dnf mark remove"
   elif detectCommand("which brew"):
-    return "brew remove"
+    return "brew remove -q"
   else:
     "Could not find a remove command".echo
     quit(QuitFailure)
@@ -65,7 +65,7 @@ proc orphansCommand*(): string =
   elif detectCommand("which pacman"):
     return "pacman -Qtdq | sudo pacman -Rns -"
   elif detectCommand("which brew"):
-    return "brew bundle --force cleanup"
+    return "brew bundle --force cleanup -q"
   elif detectCommand("which xbps-remove"):
     return "sudo xbps-remove -o"
   elif detectCommand("which dnf"):
