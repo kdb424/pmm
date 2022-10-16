@@ -5,7 +5,6 @@ import envconfig
 import os
 import sequtils
 import strutils
-import typetraits
 
 let doc = """
 pmm - Emulating Gentoo's world files and sets for other package managers.
@@ -18,10 +17,10 @@ Options:
   -v, --version                      Show version.
   --worldfile file                   Sets the worldfile
   --init                             Initializes a worldfile if it does not exist
-  --list-command=<command>           List all packages command
-  --install-command=<command>        Package install command
-  --remove-command=<command>         Package remove command
-  --orphans-command=<command>        Orphans uninstall command
+  --listCommand=<command>            List all packages command
+  --installCommand=<command>         Package install command
+  --removeCommand=<command>          Package remove command
+  --orphansCommand=<command>         Orphans uninstall command
   --sync                             Add/remove packages to match the worldfile
   --diff                             Lists the packages that are added/removed
   --install=<package>                Installs a package and appends to the worldfile
@@ -38,12 +37,12 @@ type
 when isMainModule:
   var config = getEnvConfig(Pmm)
 
-  let args = docopt(doc, version = "Pmm 0.4.1")
+  let args = docopt(doc, version = "Pmm 0.5.0")
   if args["--worldfile"]: config.world = $args["--worldfile"]
-  if args["--list-command"]: config.listCommand = $args["--list-command"]
-  if args["--install-command"]: config.installCommand = $args["--install-command"]
-  if args["--remove-command"]: config.removeCommand = $args["--remove-command"]
-  if args["--orphans-command"]: config.orphansCommand = $args["--orphans-command"]
+  if args["--listCommand"]: config.listCommand = $args["--listCommand"]
+  if args["--installCommand"]: config.installCommand = $args["--installCommand"]
+  if args["--removeCommand"]: config.removeCommand = $args["--removeCommand"]
+  if args["--orphansCommand"]: config.orphansCommand = $args["--orphansCommand"]
   if args["--sync"]: config.sync = parseBool($args["--sync"])
   if args["--diff"]: config.diff = parseBool($args["--diff"])
   if args["--init"]: config.init = parseBool($args["--init"])
@@ -70,9 +69,9 @@ when isMainModule:
     createWorldFile(config.world, config.listCommand)
   else:
     var world = readWorldFile(config.world, config.listCommand)
-    var package_list = generatePackageList(config.listCommand, config.world)
-    let added = world.filterIt(it notin package_list).clean
-    let removed = package_list.filterIt(it notin world).clean
+    var pagkageList = generatePackageList(config.listCommand, config.world)
+    let added = world.filterIt(it notin pagkageList).clean
+    let removed = pagkageList.filterIt(it notin world).clean
 
     if config.sync:
       sync(config.installCommand, config.removeCommand, added, removed, config.world)

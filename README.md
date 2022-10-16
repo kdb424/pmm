@@ -64,10 +64,10 @@ Options:
   -v, --version                      Show version.
   --worldfile file                   Set the worldfile
   --init                             Initializes a worldfile if it does not exist
-  --list-command=<command>           List all packages command
-  --install-command=<command>        Package install command
-  --remove-command=<command>         Package remove command
-  --orphans-command=<command>        Orphans uninstall command
+  --listCommand=<command>            List all packages command
+  --installCommand=<command>         Package install command
+  --removeCommand=<command>          Package remove command
+  --orphansCommand=<command>         Orphans uninstall command
   --sync                             Add/remove packages to match the worldfile
   --diff                             Lists the packages that are added/removed
   --install=<package>                Installs a package and appends to the worldfile
