@@ -7,26 +7,32 @@ import strutils
 import typetraits
 
 
-proc brewBundleDump(): string =
-  const cmd = fmt"brew bundle dump -q --force --file=/tmp/pmm"
-  discard execProcess(cmd)
-  return "/tmp/pmm"
+proc brewBundleDump(): string  {.raises: [].} =
+  try:
+    const cmd = fmt"brew bundle dump -q --force --file=/tmp/pmm"
+    discard execProcess(cmd)
+    return "/tmp/pmm"
+  except: return ""
 
-proc brewBundleList(world: string): seq[string] =
-  let cmd = fmt"brew bundle list -q --file={world}"
-  return split(execProcess(cmd))
+proc brewBundleList(world: string): seq[string] {.raises: [].} =
+  try:
+    let cmd = fmt"brew bundle list -q --file={world}"
+    return split(execProcess(cmd))
+  except: return @[""]
 
-proc generatePackageList*(listCommand: string, worldFile: string): seq[string] =
+proc generatePackageList*(listCommand: string, worldFile: string): seq[string] {.raises: [].} =
   # Generates a newline seperated list of packages, and returns it
   # as a sorted seq[string]
-  if "brew" in listCommand:
-    return brewBundleList(brewBundleDump())
-  else: return split(execProcess(listCommand))
+  try:
+    if "brew" in listCommand:
+      return brewBundleList(brewBundleDump())
+    else: return split(execProcess(listCommand))
+  except: return @[""]
 
-proc clean*(input: seq[string]): seq[string] =
+proc clean*(input: seq[string]): seq[string] {.raises: [].} =
   return filter(input, proc(x: string): bool = not x.isEmptyOrWhitespace).deduplicate
 
-proc readWorldFile*(input: string, listCommand: string): seq[string] =
+proc readWorldFile*(input: string, listCommand: string): seq[string] {.raises: [ValueError].} =
   try:
     # Checks for a brewfile, and creates a world file proper if it is one
     var packageFile: seq[string]
@@ -61,31 +67,37 @@ proc readWorldFile*(input: string, listCommand: string): seq[string] =
     quit(QuitFailure)
 
 
-proc removeOrphans*(command: string, worldFile: string) =
+proc removeOrphans*(command: string, worldFile: string) {.raises: [].} =
   var cmd: string
   if "brew" in command: cmd = command & " --file=" & worldFile
   else: cmd = command
 
-  let pid = startProcess(cmd, options = {poEchoCmd, poInteractive,
-          poParentStreams, poUsePath, poEvalCommand})
-  pid.waitForExit.echo
-  pid.close
-
-
-proc installRemove*(command: string, packages: seq[string]) =
-  # Installs or removes a list of packages
-  if packages.clean.len >= 1:
-    let fullCommand = command & " " & packages.join(sep = " ")
-    let pid = startProcess(fullCommand, options = {poEchoCmd, poInteractive,
-        poParentStreams, poUsePath, poEvalCommand})
-    discard pid.waitForExit
+  try:
+    let pid = startProcess(cmd, options = {poEchoCmd, poInteractive,
+            poParentStreams, poUsePath, poEvalCommand})
+    pid.waitForExit.echo
     pid.close
+  except:
+    "Failed to remove orphans".echo
 
-proc listDiff*(added: seq[string], removed: seq[string]) =
+
+proc installRemove*(command: string, packages: seq[string]) {.raises: [].} =
+  # Installs or removes a list of packages
+  try:
+    if packages.clean.len >= 1:
+      let fullCommand = command & " " & packages.join(sep = " ")
+      let pid = startProcess(fullCommand, options = {poEchoCmd, poInteractive,
+          poParentStreams, poUsePath, poEvalCommand})
+      discard pid.waitForExit
+      pid.close
+  except:
+    "Failed to install or remove packages".echo
+
+proc listDiff*(added: seq[string], removed: seq[string]) {.raises: [].} =
   echo ("Added: " & added.join(sep = " "))
   echo ("Removed: " & removed.join(sep = " "))
 
-proc createWorldFile*(worldFile: string, listCommand: string) =
+proc createWorldFile*(worldFile: string, listCommand: string) {.raises: [IOError].} =
   # Mac
   if "brew" in listCommand:
     const prefix = "brew bundle dump --force --file="
@@ -93,56 +105,68 @@ proc createWorldFile*(worldFile: string, listCommand: string) =
       write(stdout, "Worldfile exists. Overwrite? (y/N) ")
       if readLine(stdin).toLowerAscii != "y": return
 
-    let pid = startProcess(prefix & worldFile, options = {poEchoCmd,
-        poInteractive, poParentStreams, poUsePath, poEvalCommand})
-    discard pid.waitForExit
-    pid.close
+    try:
+      let pid = startProcess(prefix & worldFile, options = {poEchoCmd,
+          poInteractive, poParentStreams, poUsePath, poEvalCommand})
+      discard pid.waitForExit
+      pid.close
+    except: "Unable to create a world file".echo
 
   else: # Linux
     let world = generatePackageList(listCommand, worldfile)
     # Create directory if it does not exist. No error if exists
-    createDir(parentDir(worldFile))
-    if worldFile.fileExists:
-      write(stdout, "Worldfile exists. Overwrite? (y/N) ")
-      if readLine(stdin).toLowerAscii != "y": return
+    try:
+      createDir(parentDir(worldFile))
+      if worldFile.fileExists:
+        write(stdout, "Worldfile exists. Overwrite? (y/N) ")
+        if readLine(stdin).toLowerAscii != "y": return
 
-    writeFile(worldFile, world.join(sep = "\n"))
+      writeFile(worldFile, world.join(sep = "\n"))
+    except: "Unable to create a world file".echo
 
 proc sync*(installCommand: string, removeCommand: string, added: seq[string],
-    removed: seq[string], worldFile: string) =
+    removed: seq[string], worldFile: string) {.raises: [].} =
   if "brew" in installCommand:
     # sync with brew
-    let installCmd = fmt"brew bundle --force install -q --file={worldFile}"
-    discard execProcess(installCmd)
-    let removeCmd = fmt"brew bundle --force cleanup -q --file={worldFile}"
-    discard execProcess(removeCmd)
+    try:
+      let installCmd = fmt"brew bundle --force install -q --file={worldFile}"
+      discard execProcess(installCmd)
+      let removeCmd = fmt"brew bundle --force cleanup -q --file={worldFile}"
+      discard execProcess(removeCmd)
+    except: "Unable to sync a world file".echo
   else:
     installRemove(installCommand, added)
     installRemove(removeCommand, removed)
 
-proc install*(installCommand: string, pkglist: string, worldFile: string) =
+proc install*(installCommand: string, pkglist: string, worldFile: string) {.raises: [].} =
   let packages = @[pkglist]
   # Installs package, and adds it to worldfile
   installRemove(installCommand, packages)
-  var worldNoRecurse = worldFile.read_file.split
-  let newWorld = (worldNoRecurse & installCommand.split).clean.join(sep = "\n")
-  writeFile(worldFile, newWorld)
-
-proc remove*(removeCommand: string, packages: string, worldFile: string) =
-  var worldNoRecurse = worldFile.read_file.split
-  let toDelete = find(worldNoRecurse, packages)
-  if toDelete != -1:
-    delete(worldNoRecurse, toDelete)
-    let newWorld = worldNoRecurse.clean.join(sep = "\n")
+  try:
+    var worldNoRecurse = worldFile.read_file.split
+    let newWorld = (worldNoRecurse & installCommand.split).clean.join(sep = "\n")
     writeFile(worldFile, newWorld)
-    installRemove(removeCommand, @[packages])
-  else: fmt"Could not find {packages} in worldfile.".echo
+  except IOError: "Unable to install".echo
+
+proc remove*(removeCommand: string, packages: string, worldFile: string) {.raises: [ValueError].} =
+  try:
+    var worldNoRecurse = worldFile.read_file.split
+    let toDelete = find(worldNoRecurse, packages)
+    if toDelete != -1:
+      delete(worldNoRecurse, toDelete)
+      let newWorld = worldNoRecurse.clean.join(sep = "\n")
+      writeFile(worldFile, newWorld)
+      installRemove(removeCommand, @[packages])
+    else: fmt"Could not find {packages} in worldfile.".echo
+  except IOError: "Unable to remove".echo
 
 proc bash*(installCommand: string, removeCommand: string, added: seq[string],
-    removed: seq[string]) =
+    removed: seq[string]) {.raises: [].} =
   let ic = installCommand & " " & added.join(sep = " ")
   let rc = removeCommand & " " & removed.join(sep = " ")
-  if removed.len > 0: stdout.write rc
-  if added.len > 0 and removed.len > 0: stdout.write " && "
-  if added.len > 0: stdout.write ic
-  stdout.flushFile
+  try:
+    if removed.len > 0: stdout.write rc
+    if added.len > 0 and removed.len > 0: stdout.write " && "
+    if added.len > 0: stdout.write ic
+    stdout.flushFile
+  except IOError: "Unable to output to bash".echo

@@ -37,7 +37,7 @@ type
 when isMainModule:
   var config = getEnvConfig(Pmm)
 
-  let args = docopt(doc, version = "Pmm 0.5.0")
+  let args = docopt(doc, version = "Pmm 0.5.1")
   if args["--worldfile"]: config.world = $args["--worldfile"]
   if args["--listCommand"]: config.listCommand = $args["--listCommand"]
   if args["--installCommand"]: config.installCommand = $args["--installCommand"]

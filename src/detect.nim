@@ -1,16 +1,18 @@
 import osproc
 
-proc detectCommand(command: string): bool =
-  let pid = startProcess(command, options = {poUsePath, poEvalCommand})
-  discard pid.waitForExit
-  if pid.peekExitCode == 0:
-    pid.close
-    return true
-  else:
-    pid.close
-    return false
+proc detectCommand(command: string): bool {.raises: [].} =
+  try:
+    let pid = startProcess(command, options = {poUsePath, poEvalCommand})
+    discard pid.waitForExit
+    if pid.peekExitCode == 0:
+      pid.close
+      return true
+    else:
+      pid.close
+      return false
+  except: return false
 
-proc listCommand*(): string =
+proc listCommand*(): string {.raises: [].} =
   if detectCommand("which yay"):
     return "yay -Qqe"
   elif detectCommand("which pacman"):
@@ -27,7 +29,7 @@ proc listCommand*(): string =
     "Could not find a list command".echo
     quit(QuitFailure)
 
-proc installCommand*(): string =
+proc installCommand*(): string {.raises: [].} =
   if detectCommand("which yay"):
     return "yay -S --asexplicit"
   elif detectCommand("which pacman"):
@@ -44,7 +46,7 @@ proc installCommand*(): string =
     "Could not find an install command".echo
     quit(QuitFailure)
 
-proc removeCommand*(): string =
+proc removeCommand*(): string {.raises: [].} =
   if detectCommand("which yay"):
     return "yay -D --asdeps"
   elif detectCommand("which pacman"):
@@ -59,7 +61,7 @@ proc removeCommand*(): string =
     "Could not find a remove command".echo
     quit(QuitFailure)
 
-proc orphansCommand*(): string =
+proc orphansCommand*(): string {.raises: [].} =
   if detectCommand("which yay"):
     return "yay -Qtdq | yay -Rns -"
   elif detectCommand("which pacman"):

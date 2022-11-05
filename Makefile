@@ -2,7 +2,7 @@
 # pmm
 #
 # @file
-# @version 0.5
+# @version 0.5.1
 
 SRC = *.nim
 SRCDIR = src
@@ -19,15 +19,15 @@ all: pretty release man docs
 
 .PHONY: release
 release:
-	nimble build '--cc:clang -d:release --opt:size -d:strip' -y
+	nimble build '--cc:clang -d:release --opt:size -d:strip --experimental:strictEffects --panics:on' -y
 
 .PHONY: static
 static:
-	nimble build '--cc:clang -d:release --passL:-static --opt:size -d:strip' -y
+	nimble build '--cc:clang -d:release --passL:-static --opt:size -d:strip --experimental:strictEffects --panics:on' -y
 
 .PHONY: debug
 debug:
-	nimble build '--cc:clang' --verbose
+	nimble build '--cc:clang --experimental:strictEffects --panics:on' --verbose
 
 .PHONY: clean
 clean:
